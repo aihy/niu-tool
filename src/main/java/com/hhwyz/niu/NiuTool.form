@@ -1,74 +1,104 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.hhwyz.niu.NiuTool">
-  <grid id="27dc6" binding="root" layout-manager="GridLayoutManager" row-count="3" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-    <margin top="0" left="0" bottom="0" right="0"/>
+  <grid id="27dc6" binding="root" layout-manager="BorderLayout" hgap="0" vgap="0">
     <constraints>
-      <xy x="20" y="20" width="500" height="400"/>
+      <xy x="20" y="20" width="2049" height="400"/>
     </constraints>
     <properties/>
     <border type="none"/>
     <children>
-      <scrollpane id="7cf66">
-        <constraints>
-          <grid row="0" column="0" row-span="1" col-span="3" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-        </constraints>
+      <splitpane id="175a7">
+        <constraints border-constraint="Center"/>
+        <properties>
+          <dividerLocation value="400"/>
+        </properties>
+        <border type="none"/>
+        <children>
+          <scrollpane id="7cf66">
+            <constraints>
+              <splitpane position="left"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <component id="69866" class="javax.swing.JTextArea" binding="jsonEdit">
+                <constraints/>
+                <properties/>
+              </component>
+            </children>
+          </scrollpane>
+          <scrollpane id="55a4d" binding="jsonTreeScrollPane">
+            <constraints>
+              <splitpane position="right"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <component id="cf1e1" class="javax.swing.JTree" binding="jsonTree" custom-create="true">
+                <constraints/>
+                <properties>
+                  <editable value="false"/>
+                </properties>
+              </component>
+            </children>
+          </scrollpane>
+        </children>
+      </splitpane>
+      <grid id="37776" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
+        <constraints border-constraint="South"/>
         <properties/>
         <border type="none"/>
         <children>
-          <component id="69866" class="javax.swing.JTextArea" binding="jTextArea1">
+          <component id="c41d4" class="javax.swing.JButton" binding="exbandAll">
             <constraints/>
-            <properties/>
+            <properties>
+              <text value="全展开"/>
+            </properties>
+          </component>
+          <component id="35d40" class="javax.swing.JButton" binding="collpseAll">
+            <constraints/>
+            <properties>
+              <text value="全收缩"/>
+            </properties>
+          </component>
+          <component id="fd9e6" class="javax.swing.JLabel" binding="levelLabel">
+            <constraints/>
+            <properties>
+              <text value="展开层级："/>
+            </properties>
+          </component>
+          <component id="9831e" class="javax.swing.JTextField" binding="level">
+            <constraints/>
+            <properties>
+              <columns value="2"/>
+            </properties>
+          </component>
+          <component id="eaf86" class="javax.swing.JButton" binding="trimButton">
+            <constraints/>
+            <properties>
+              <text value="括号修剪"/>
+            </properties>
+          </component>
+          <component id="9599f" class="javax.swing.JButton" binding="formatButton">
+            <constraints/>
+            <properties>
+              <text value="格式化"/>
+            </properties>
+          </component>
+          <component id="f7cbf" class="javax.swing.JButton" binding="antiEscapeButton">
+            <constraints/>
+            <properties>
+              <text value="反转义"/>
+            </properties>
+          </component>
+          <component id="d6dfe" class="javax.swing.JButton" binding="compressButton">
+            <constraints/>
+            <properties>
+              <text value="压缩"/>
+            </properties>
           </component>
         </children>
-      </scrollpane>
-      <component id="eaf86" class="javax.swing.JButton" binding="trimButton">
-        <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="括号修剪"/>
-        </properties>
-      </component>
-      <component id="9599f" class="javax.swing.JButton" binding="formatButton">
-        <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="格式化"/>
-        </properties>
-      </component>
-      <component id="f7cbf" class="javax.swing.JButton" binding="antiEscapeButton">
-        <constraints>
-          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="反转义"/>
-        </properties>
-      </component>
-      <component id="d89d3" class="javax.swing.JButton" binding="clearButton">
-        <constraints>
-          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="清空"/>
-        </properties>
-      </component>
-      <component id="d6dfe" class="javax.swing.JButton" binding="compressButton">
-        <constraints>
-          <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="压缩"/>
-        </properties>
-      </component>
-      <component id="57947" class="javax.swing.JButton" binding="copyButton">
-        <constraints>
-          <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="全选并拷贝"/>
-        </properties>
-      </component>
+      </grid>
     </children>
   </grid>
 </form>
