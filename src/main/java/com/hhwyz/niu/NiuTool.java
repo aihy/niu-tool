@@ -4,18 +4,19 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.google.common.base.Stopwatch;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
+import javax.swing.event.TreeExpansionListener;
+import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 import java.util.*;
 
 /**
@@ -32,6 +33,9 @@ public class NiuTool {
     private JTree jsonTree;
     private JTextField level;
     private JLabel levelLabel;
+    private JButton collpseAll;
+    private JButton exbandAll;
+    private JScrollPane jsonTreeScrollPane;
 
     public NiuTool() {
         $$$setupUI$$$();
@@ -67,18 +71,6 @@ public class NiuTool {
                 update();
             }
 
-            private void update() {
-                String jsonString = jsonEdit.getText().trim();
-                try {
-                    Object obj = JSON.parse(jsonString);
-                    DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("JSON");
-                    buildTree(rootNode, null, obj);
-                    jsonTree.setModel(new DefaultTreeModel(rootNode));
-                } catch (Exception ex) {
-//                    JOptionPane.showMessageDialog(this, "Invalid JSON format", "Error", JOptionPane.ERROR_MESSAGE);
-//                    ex.printStackTrace();
-                }
-            }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
@@ -119,73 +111,161 @@ public class NiuTool {
             }
 
             private void expandTreeToLevel(String levelString) {
+                Stopwatch stopwatch = Stopwatch.createStarted();
                 try {
-                    collapseAll();
-                    int level = Integer.parseInt(levelString);
-                    // 确保level不小于0
+                    reInit();
+//                    collapseAll();
+//                    expandAll();
+                    int level = Integer.parseInt(levelString) - 1;
+//                    // 确保level不小于0
                     level = Math.max(0, level);
-                    // 调用内部递归方法，当前节点是根节点，当前层级为0
-                    expandNodeToLevel((DefaultMutableTreeNode) jsonTree.getModel().getRoot(), level);
-                } catch (Exception ignore) {
-                }
-            }
-
-            private void collapseAll() {
-                int row = jsonTree.getRowCount() - 1;
-                while (row >= 0) {
-                    jsonTree.collapseRow(row);
-                    row--;
-                }
-                // 若需要将根节点展开，取消下面这行的注释
-                // tree.expandRow(0);
-            }
-
-            //            private void expandNodeToLevel(DefaultMutableTreeNode node, int targetLevel, int currentLevel) {
-//                // 检查当前层级是否小于目标层级
-//                if (currentLevel < targetLevel) {
-//                    // 如果是，则遍历所有子节点
-//                    for (int i = 0; i < node.getChildCount(); i++) {
-//                        DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) node.getChildAt(i);
-//                        // 递归调用此方法，层级增加
-//                        expandNodeToLevel(childNode, targetLevel, currentLevel + 1);
-//                    }
-//                }
-//                if (currentLevel <= targetLevel) {
-//                    // 展开当前节点的路径
-//                    jsonTree.expandPath(new TreePath(node.getPath()));
-//                }
-//            }
-            private void expandNodeToLevel(DefaultMutableTreeNode node, int targetLevel) {
-                // 创建栈保存节点及其层级
-                Stack<DefaultMutableTreeNode> stack = new Stack<>();
-                Stack<Integer> levels = new Stack<>();
-
-                // 初始化栈
-                stack.push(node);
-                levels.push(0);
-
-                // 循环直到栈为空
-                while (!stack.isEmpty()) {
-                    // 从栈中取出当前节点及其层级
-                    DefaultMutableTreeNode currentNode = stack.pop();
-                    int currentLevel = levels.pop();
-
-                    // 如果当前层级小于目标层级，则将子节点压入栈中
-                    if (currentLevel < targetLevel) {
-                        for (int i = 0; i < currentNode.getChildCount(); i++) {
-                            DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) currentNode.getChildAt(i);
-                            stack.push(childNode);
-                            levels.push(currentLevel + 1); // 子节点的层级是当前层级 + 1
-                        }
-                    }
-
-                    // 展开当前节点的路径（如果当前层级不超过目标层级）
-                    if (currentLevel <= targetLevel) {
-                        jsonTree.expandPath(new TreePath(currentNode.getPath()));
-                    }
+//                    // 调用内部递归方法，当前节点是根节点，当前层级为0
+                    expandNodeToLevel(level);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    stopwatch.stop();
+                    System.out.println("耗时：" + stopwatch.elapsed());
                 }
             }
         });
+
+        exbandAll.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Stopwatch stopwatch = Stopwatch.createStarted();
+                try {
+                    expandAllFaster(jsonTree);
+                } finally {
+                    stopwatch.stop();
+                    System.out.println("耗时：" + stopwatch.elapsed());
+                }
+            }
+        });
+        collpseAll.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Stopwatch stopwatch = Stopwatch.createStarted();
+                try {
+                    collapseAll();
+                } finally {
+                    stopwatch.stop();
+                    System.out.println("耗时：" + stopwatch.elapsed());
+                }
+            }
+        });
+    }
+
+    private static void expandAllFaster(JTree tree) {
+        // Determine a suitable row height for the tree, based on the
+        // size of the component that is used for rendering the root
+        TreeCellRenderer cellRenderer = tree.getCellRenderer();
+        Component treeCellRendererComponent =
+                cellRenderer.getTreeCellRendererComponent(
+                        tree, tree.getModel().getRoot(), false, false, false, 1, false);
+        int rowHeight = treeCellRendererComponent.getPreferredSize().height + 2;
+        tree.setRowHeight(rowHeight);
+
+        // Temporarily remove all listeners that would otherwise
+        // be flooded with TreeExpansionEvents
+        TreeExpansionListener[] expansionListeners =
+                tree.getTreeExpansionListeners();
+        for (TreeExpansionListener expansionListener : expansionListeners) {
+            tree.removeTreeExpansionListener(expansionListener);
+        }
+
+        // Recursively expand all nodes of the tree
+        TreePath rootPath = new TreePath(tree.getModel().getRoot());
+        expandAllRecursively(tree, rootPath);
+
+        // Restore the listeners that the tree originally had
+        for (TreeExpansionListener expansionListener : expansionListeners) {
+            tree.addTreeExpansionListener(expansionListener);
+        }
+
+        // Trigger an update for the TreeExpansionListeners
+        tree.collapsePath(rootPath);
+        tree.expandPath(rootPath);
+    }
+
+    // Recursively expand the given path and its child paths in the given tree
+    private static void expandAllRecursively(JTree tree, TreePath treePath) {
+        TreeModel model = tree.getModel();
+        Object lastPathComponent = treePath.getLastPathComponent();
+        int childCount = model.getChildCount(lastPathComponent);
+        if (childCount == 0) {
+            return;
+        }
+        tree.expandPath(treePath);
+        for (int i = 0; i < childCount; i++) {
+            Object child = model.getChild(lastPathComponent, i);
+            int grandChildCount = model.getChildCount(child);
+            if (grandChildCount > 0) {
+                class LocalTreePath extends TreePath {
+                    private static final long serialVersionUID = 0;
+
+                    public LocalTreePath(
+                            TreePath parent, Object lastPathComponent) {
+                        super(parent, lastPathComponent);
+                    }
+                }
+                TreePath nextTreePath = new LocalTreePath(treePath, child);
+                expandAllRecursively(tree, nextTreePath);
+            }
+        }
+    }
+
+    public static int getTreeDepth(JTree tree) {
+        TreeModel model = tree.getModel();
+        if (model != null) {
+            TreeNode root = (TreeNode) model.getRoot();
+            // 开始递归查询树的深度
+            return getTreeNodeDepth(root);
+        }
+        // 如果树为空，则返回0
+        return 0;
+    }
+
+    // 递归函数
+    private static int getTreeNodeDepth(TreeNode node) {
+        if (node.isLeaf()) {
+            // 如果是叶子节点，则没有子节点，深度为1
+            return 1;
+        } else {
+            int depth = 0;
+            // 遍历所有子节点，找到最大深度
+            for (int i = 0; i < node.getChildCount(); i++) {
+                TreeNode child = node.getChildAt(i);
+                depth = Math.max(depth, getTreeNodeDepth(child));
+            }
+            // 返回当前节点的深度，即子节点最大深度+1
+            return depth + 1;
+        }
+    }
+
+    private void update() {
+        String jsonString = jsonEdit.getText().trim();
+        try {
+            Object obj = JSON.parse(jsonString);
+            DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
+            buildTree(rootNode, null, obj);
+            jsonTree.setModel(new DefaultTreeModel(rootNode));
+        } catch (Exception ex) {
+//                    JOptionPane.showMessageDialog(this, "Invalid JSON format", "Error", JOptionPane.ERROR_MESSAGE);
+//                    ex.printStackTrace();
+        }
+    }
+
+    private void reInit() {
+        String jsonString = jsonEdit.getText().trim();
+        Object obj = JSON.parse(jsonString);
+        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
+        buildTree(rootNode, null, obj);
+        jsonTree = new JTree(new DefaultTreeModel(rootNode));
+        jsonTree.setLargeModel(true);
+        MyTreeCellRenderer myTreeCellRenderer = new MyTreeCellRenderer();
+        jsonTree.setCellRenderer(myTreeCellRenderer);
+        jsonTreeScrollPane.setViewportView(jsonTree);
     }
 
     public static void main(String[] args) {
@@ -197,6 +277,76 @@ public class NiuTool {
 //        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+    }
+
+    private void expandAll() {
+        int r = 0;
+        while (r < jsonTree.getRowCount()) {
+            jsonTree.expandRow(r);
+            r++;
+        }
+    }
+
+    private void collapseAll() {
+        int row = jsonTree.getRowCount() - 1;
+        while (row >= 0) {
+            jsonTree.collapseRow(row);
+            row--;
+        }
+        // 若需要将根节点展开，取消下面这行的注释
+        // tree.expandRow(0);
+    }
+
+    private void expandNodeToLevel(int targetLevel) {
+        Set<TreePath> pathList = new HashSet<>();
+        findLevelPath((DefaultMutableTreeNode) jsonTree.getModel().getRoot(), 0, targetLevel, pathList);
+        System.out.println("pathList.old.size=" + pathList.size());
+        prunePathList(pathList);
+        System.out.println("pathList.size=" + pathList.size());
+        for (TreePath path : pathList) {
+            jsonTree.expandPath(path);
+        }
+    }
+
+    private void findLevelPath(DefaultMutableTreeNode node, int level, int targetLevel, Set<TreePath> pathList) {
+        if (!node.isLeaf()) {
+            pathList.add(new TreePath(node.getPath()));
+        }
+        if (level == targetLevel) {
+            return;
+        }
+        for (int i = 0; i < node.getChildCount(); i++) {
+            DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) node.getChildAt(i);
+            findLevelPath(childNode, level + 1, targetLevel, pathList);
+        }
+    }
+
+    private void prunePathList(Set<TreePath> pathList) {
+        Iterator<TreePath> iterator = pathList.iterator();
+        while (iterator.hasNext()) {
+            TreePath shorterPath = iterator.next();
+            for (TreePath longerPath : pathList) {
+                if (shorterPath != longerPath && isSubPath(shorterPath, longerPath)) {
+                    // 如果shorterPath是longerPath的子路径，则移除shorterPath
+                    iterator.remove();
+                    break;
+                }
+            }
+        }
+    }
+
+    private boolean isSubPath(TreePath shorterPath, TreePath longerPath) {
+        Object[] shorterPathArray = shorterPath.getPath();
+        Object[] longerPathArray = longerPath.getPath();
+        if (shorterPathArray.length >= longerPathArray.length) {
+            return false;
+        }
+        for (int i = 0; i < shorterPathArray.length; i++) {
+            if (!shorterPathArray[i].equals(longerPathArray[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void buildTree(DefaultMutableTreeNode parent, Object jsonKey, Object jsonValue) {
@@ -251,7 +401,13 @@ public class NiuTool {
                 } else {
                     String left = currentKey.toString();
                     String right = currentValue == null ? "" : currentValue.toString();
-                    parentNode.setUserObject("<html><font color=\"#dd4a68\">\"" + left + "\"</font> : <font color=\"#669900\">\"" + right + "\"</font></html>"); // Handle primitive types
+                    String sb = "<html><font color=\"#dd4a68\">" +
+                            left +
+                            "</font> : <font color=\"#669900\">" +
+                            right +
+                            "</font></html>";
+//                    String sb = left + " : " + right;
+                    parentNode.setUserObject(sb); // Handle primitive types
                 }
             }
         }
@@ -407,13 +563,19 @@ public class NiuTool {
         splitPane1.setLeftComponent(scrollPane1);
         jsonEdit = new JTextArea();
         scrollPane1.setViewportView(jsonEdit);
-        final JScrollPane scrollPane2 = new JScrollPane();
-        splitPane1.setRightComponent(scrollPane2);
-        jsonTree.setEditable(true);
-        scrollPane2.setViewportView(jsonTree);
+        jsonTreeScrollPane = new JScrollPane();
+        splitPane1.setRightComponent(jsonTreeScrollPane);
+        jsonTree.setEditable(false);
+        jsonTreeScrollPane.setViewportView(jsonTree);
         final JPanel panel1 = new JPanel();
         panel1.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
         root.add(panel1, BorderLayout.SOUTH);
+        exbandAll = new JButton();
+        exbandAll.setText("全展开");
+        panel1.add(exbandAll);
+        collpseAll = new JButton();
+        collpseAll.setText("全收缩");
+        panel1.add(collpseAll);
         levelLabel = new JLabel();
         levelLabel.setText("展开层级：");
         panel1.add(levelLabel);
@@ -443,5 +605,8 @@ public class NiuTool {
 
     private void createUIComponents() {
         jsonTree = new JTree(new Object[]{});
+        jsonTree.setLargeModel(true);
+        MyTreeCellRenderer myTreeCellRenderer = new MyTreeCellRenderer();
+        jsonTree.setCellRenderer(myTreeCellRenderer);
     }
 }

@@ -27,7 +27,7 @@
               </component>
             </children>
           </scrollpane>
-          <scrollpane id="55a4d">
+          <scrollpane id="55a4d" binding="jsonTreeScrollPane">
             <constraints>
               <splitpane position="right"/>
             </constraints>
@@ -37,7 +37,7 @@
               <component id="cf1e1" class="javax.swing.JTree" binding="jsonTree" custom-create="true">
                 <constraints/>
                 <properties>
-                  <editable value="true"/>
+                  <editable value="false"/>
                 </properties>
               </component>
             </children>
@@ -49,6 +49,18 @@
         <properties/>
         <border type="none"/>
         <children>
+          <component id="c41d4" class="javax.swing.JButton" binding="exbandAll">
+            <constraints/>
+            <properties>
+              <text value="全展开"/>
+            </properties>
+          </component>
+          <component id="35d40" class="javax.swing.JButton" binding="collpseAll">
+            <constraints/>
+            <properties>
+              <text value="全收缩"/>
+            </properties>
+          </component>
           <component id="fd9e6" class="javax.swing.JLabel" binding="levelLabel">
             <constraints/>
             <properties>
